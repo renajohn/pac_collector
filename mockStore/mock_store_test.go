@@ -1,7 +1,6 @@
 package mockstore
 
 import (
-	"errors"
 	"reflect"
 	"testing"
 
@@ -9,14 +8,8 @@ import (
 )
 
 func TestPut(t *testing.T) {
-	lastValue := func(values []store.Measurement) (*store.Measurement, error) {
-		if len(values) == 0 {
-			return nil, errors.New("Values array is empty")
-		}
-		return &values[len(values)-1], nil
-	}
-	assertLastValue := func(store MockStore, expect *store.Measurement) {
-		tail, err := lastValue(store.values)
+	assertLastValue := func(store MockStore, expect store.Measurement) {
+		tail, err := store.LastMeasurement()
 
 		if err != nil {
 			t.Error(err)
@@ -35,7 +28,7 @@ func TestPut(t *testing.T) {
 
 		mockStore.Put(measure)
 
-		assertLastValue(mockStore, &measure)
+		assertLastValue(mockStore, measure)
 	})
 
 }
