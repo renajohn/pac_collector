@@ -1,4 +1,4 @@
-package store
+package api
 
 // MeasurementType represents the base type for all measurement types
 type MeasurementType string
@@ -13,9 +13,4 @@ type Measurement struct {
 	MeasurementType MeasurementType
 	TimestampSecond int64
 	Measure         float64
-}
-
-// Store represents the sink for measurements
-type Store interface {
-	Put(m Measurement) error
 }

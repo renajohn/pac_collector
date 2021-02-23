@@ -4,19 +4,19 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/renajohn/pac_collector/mockstore"
-	"github.com/renajohn/pac_collector/store"
+	"github.com/renajohn/pac_collector/api"
+	"github.com/renajohn/pac_collector/internal/mockstore"
 )
 
 type MockSource struct {
-	measurementsChannel chan store.Measurement
+	measurementsChannel chan api.Measurement
 }
 
-func (ms *MockSource) Start() <-chan store.Measurement {
+func (ms *MockSource) Start() <-chan api.Measurement {
 	return ms.measurementsChannel
 }
 
-func sendMeasurements(channel chan store.Measurement, measurements []store.Measurement) {
+func sendMeasurements(channel chan api.Measurement, measurements []api.Measurement) {
 	for _, measurement := range measurements {
 		channel <- measurement
 	}
@@ -24,17 +24,17 @@ func sendMeasurements(channel chan store.Measurement, measurements []store.Measu
 }
 
 func TestStart(t *testing.T) {
-	assertMeasurements := func(expect []store.Measurement, got []store.Measurement) {
+	assertMeasurements := func(expect []api.Measurement, got []api.Measurement) {
 		if !reflect.DeepEqual(expect, got) {
 			t.Errorf("Expected value of %+v got %+v", expect, got)
 		}
 	}
 
 	t.Run("Single value", func(t *testing.T) {
-		source := MockSource{make(chan store.Measurement, 1)}
+		source := MockSource{make(chan api.Measurement, 1)}
 		mockStore := mockstore.MockStore{}
-		measurements := []store.Measurement{{
-			MeasurementType: store.WaterTemperature,
+		measurements := []api.Measurement{{
+			MeasurementType: api.WaterTemperature,
 			TimestampSecond: 1,
 			Measure:         44.0,
 		}}
@@ -48,14 +48,14 @@ func TestStart(t *testing.T) {
 	})
 
 	t.Run("2 values value", func(t *testing.T) {
-		source := MockSource{make(chan store.Measurement, 2)}
+		source := MockSource{make(chan api.Measurement, 2)}
 		mockStore := mockstore.MockStore{}
-		measurements := []store.Measurement{{
-			MeasurementType: store.WaterTemperature,
+		measurements := []api.Measurement{{
+			MeasurementType: api.WaterTemperature,
 			TimestampSecond: 1,
 			Measure:         44.0,
 		}, {
-			MeasurementType: store.WaterTemperature,
+			MeasurementType: api.WaterTemperature,
 			TimestampSecond: 2,
 			Measure:         10.0,
 		}}

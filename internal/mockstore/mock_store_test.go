@@ -4,11 +4,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/renajohn/pac_collector/store"
+	"github.com/renajohn/pac_collector/api"
 )
 
 func TestPut(t *testing.T) {
-	assertLastValue := func(store MockStore, expect store.Measurement) {
+	assertLastValue := func(store MockStore, expect api.Measurement) {
 		tail, err := store.LastMeasurement()
 
 		if err != nil {
@@ -20,8 +20,8 @@ func TestPut(t *testing.T) {
 
 	t.Run("Happy case", func(t *testing.T) {
 		mockStore := MockStore{}
-		measure := store.Measurement{
-			MeasurementType: store.WaterTemperature,
+		measure := api.Measurement{
+			MeasurementType: api.WaterTemperature,
 			TimestampSecond: 123456789,
 			Measure:         42.0,
 		}

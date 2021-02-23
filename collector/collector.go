@@ -1,12 +1,12 @@
 package collector
 
-import "github.com/renajohn/pac_collector/store"
+import "github.com/renajohn/pac_collector/api"
 
 // Collector bind a source to a store
 type Collector struct {
-	Source        Source
-	Store         store.Store
-	sourceChannel <-chan store.Measurement
+	Source        api.Source
+	Store         api.Store
+	sourceChannel <-chan api.Measurement
 }
 
 // Start initiate the collection process
