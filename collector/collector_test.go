@@ -12,8 +12,8 @@ type MockSource struct {
 	measurementsChannel chan api.Measurement
 }
 
-func (ms *MockSource) Start() <-chan api.Measurement {
-	return ms.measurementsChannel
+func (ms *MockSource) Start() (<-chan api.Measurement, error) {
+	return ms.measurementsChannel, nil
 }
 
 func sendMeasurements(channel chan api.Measurement, measurements []api.Measurement) {

@@ -1,0 +1,91 @@
+<Content>
+    <item id='0x46a0ac'>
+        <name>Départ</name>
+        <value>33.8°C</value>
+    </item>
+    <item id='0x49902c'>
+        <name>Retour</name>
+        <value>34.5°C</value>
+    </item>
+    <item id='0x4970ec'>
+        <name>Consigne retour</name>
+        <value>28.4°C</value>
+    </item>
+    <item id='0x497a64'>
+        <name>Gaz chaud</name>
+        <value>44.0°C</value>
+    </item>
+    <item id='0x498414'>
+        <name>Extérieure</name>
+        <value>4.7°C</value>
+    </item>
+    <item id='0x466714'>
+        <name>Température moyenne</name>
+        <value>5.7°C</value>
+    </item>
+    <item id='0x4976e4'>
+        <name>Température ECS</name>
+        <value>52.3°C</value>
+    </item>
+    <item id='0x497b4c'>
+        <name>Consigne ECS</name>
+        <value>52.0°C</value>
+    </item>
+    <item id='0x497ef4'>
+        <name>Entrée source chal.</name>
+        <value>11.0°C</value>
+    </item>
+    <item id='0x497494'>
+        <name>Sorties source chal.</name>
+        <value>11.2°C</value>
+    </item>
+    <item id='0x47092c'>
+        <name>Cde à distance</name>
+        <value>0.0°C</value>
+    </item>
+    <item id='0x4985f4'>
+        <name>Temp. départ M 2</name>
+        <value>33.8°C</value>
+    </item>
+    <item id='0x49862c'>
+        <name>Consigne départ M 2</name>
+        <value>21.0°C</value>
+    </item>
+    <item id='0x498e94'>
+        <name>Panneaux solaire</name>
+        <value>5.0°C</value>
+    </item>
+    <item id='0x498ecc'>
+        <name>Préparateur solaire</name>
+        <value>150.0°C</value>
+    </item>
+    <item id='0x473fc4'>
+        <name>Source chal. externe</name>
+        <value>5.0°C</value>
+    </item>
+    <item id='0x497344'>
+        <name>départ max</name>
+        <value>64.0°C</value>
+    </item>
+    <item id='0x497f74'>
+        <name>Refoulement VD</name>
+        <value>32.4°C</value>
+    </item>
+    <item id='0x46bec4'>
+        <name>Surchauffe</name>
+        <value>18.9 K</value>
+    </item>
+    <item id='0x497bb4'>
+        <name>Consigne surchauffe</name>
+        <value>6.7 K</value>
+    </item>
+    <item id='0x4678d4'>
+        <name>Temp. ambiance</name>
+        <value>21.1°C</value>
+    </item>
+    <item id='0x46790c'>
+        <name>Temp cons. ambi.</name>
+        <value>21.0°C</value>
+    </item>
+    <name>Températures</name>
+</Content>	

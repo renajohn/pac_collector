@@ -1,6 +1,10 @@
 package collector
 
-import "github.com/renajohn/pac_collector/api"
+import (
+	"log"
+
+	"github.com/renajohn/pac_collector/api"
+)
 
 // Collector bind a source to a store
 type Collector struct {
@@ -11,7 +15,12 @@ type Collector struct {
 
 // Start initiate the collection process
 func (c *Collector) Start() {
-	c.sourceChannel = c.Source.Start()
+	var err error
+	c.sourceChannel, err = c.Source.Start()
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	c.collect()
 }

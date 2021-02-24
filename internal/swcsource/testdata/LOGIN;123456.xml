@@ -1,0 +1,83 @@
+<Navigation id='0x491578'>
+    <item id='0x46c8d0'>
+        <name>Informations</name>
+        <item id='0x46bd50'>
+            <name>Températures</name>
+        </item>
+        <item id='0x469e78'>
+            <name>Entrées</name>
+        </item>
+        <item id='0x472a88'>
+            <name>Sorties</name>
+        </item>
+        <item id='0x46a410'>
+            <name>Temps écoulé</name>
+        </item>
+        <item id='0x494ed0'>
+            <name>Heures de fonctio.</name>
+        </item>
+        <item id='0x4922a0'>
+            <name>Défauts</name>
+        </item>
+        <item id='0x494f08'>
+            <name>Arrêts</name>
+        </item>
+        <item id='0x492268'>
+            <name>Status de l'installation</name>
+        </item>
+        <item id='0x44f2f8'>
+            <name>Compteur de chaleur</name>
+        </item>
+        <item id='0x450f28'>
+            <name>GTC</name>
+        </item>
+    </item>
+    <item id='0x491bf0'>
+        <name>Configuration</name>
+        <item id='0x45e968'>
+            <name>Mode de fonctionnement</name>
+        </item>
+        <item id='0x490118'>
+            <name>Températures</name>
+        </item>
+        <item id='0x492408'>
+            <name>Règlage système</name>
+        </item>
+    </item>
+    <item id='0x492440'>
+        <name>Programme horaire</name>
+        <readOnly>true</readOnly>
+        <item id='0x497560'>
+            <name>Chauffage</name>
+            <readOnly>true</readOnly>
+            <item id='0x496e50'>
+                <name>Semaine</name>
+            </item>
+            <item id='0x498ce0'>
+                <name>5+2</name>
+            </item>
+            <item id='0x497f38'>
+                <name>Jours (Lu - Ma - Me...)</name>
+            </item>
+        </item>
+        <item id='0x497eb8'>
+            <name>Eau Chaude Sanitaire</name>
+            <readOnly>true</readOnly>
+            <item id='0x497c78'>
+                <name>Semaine</name>
+            </item>
+            <item id='0x497bf8'>
+                <name>5+2</name>
+            </item>
+            <item id='0x497b78'>
+                <name>Jours (Lu - Ma - Me...)</name>
+            </item>
+        </item>
+    </item>
+    <item id='0x497a28'>
+        <name>Accès: Utilisateur</name>
+    </item>
+    <item id='0x496ff0'>
+        <name>remote control</name>
+    </item>
+</Navigation>
