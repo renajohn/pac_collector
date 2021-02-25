@@ -1,6 +1,7 @@
 package swcsource
 
 import (
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -28,7 +29,7 @@ func assertValue(t *testing.T, expect string, got string) {
 	}
 }
 
-func mockServer(t *testing.T, expected []MessageResponse, spy *WsSpy) func(http.ResponseWriter, *http.Request) {
+func generateHTTPHandler(t *testing.T, expected []MessageResponse, spy *WsSpy) func(http.ResponseWriter, *http.Request) {
 	t.Helper()
 	return func(response http.ResponseWriter, request *http.Request) {
 		t.Helper()
@@ -56,31 +57,93 @@ func mockServer(t *testing.T, expected []MessageResponse, spy *WsSpy) func(http.
 	}
 }
 
-func TestStart(t *testing.T) {
-	file, readError := os.ReadFile("testdata/LOGIN;123456.xml")
+func readFixture(t *testing.T, fileName string) string {
+	t.Helper()
+
+	data, readError := os.ReadFile(fileName)
 	if readError != nil {
 		t.Fatalf("failed to read file %v", readError)
 	}
 
-	var spy = WsSpy{}
-	handler := mockServer(t, []MessageResponse{{
-		message:  "LOGIN;123456",
-		response: string(file),
-	}}, &spy)
-	server := httptest.NewServer(http.HandlerFunc(handler))
+	return string(data)
+}
 
-	// Convert http://127.0.0.1 to ws://127.0.0.
-	wsURL := "ws" + strings.TrimPrefix(server.URL, "http")
+func toWs(url string) string {
+	return "ws" + strings.TrimPrefix(url, "http")
+}
 
-	source := SWCSource{Pin: "123456", wsURL: wsURL}
-	_, err := source.Start()
-	server.Close()
+func TestStart(t *testing.T) {
+	loginXML := readFixture(t, "testdata/LOGIN;123456.xml")
+	getXML := readFixture(t, "testdata/GET;0x46bd50.xml")
+	refreshXML := readFixture(t, "testdata/GET;0x46bd50-REFRESH.xml")
 
-	if err != nil {
-		t.Errorf("Unexpected error %v", err)
-	}
-	if len(spy.messagesLog) != 1 {
-		t.Errorf("expected one message in WS got %d", len(spy.messagesLog))
-	}
+	t.Run("WebSocket connection", func(t *testing.T) {
+		var spy = WsSpy{}
+		handler := generateHTTPHandler(t, []MessageResponse{{
+			message:  "LOGIN;000000",
+			response: loginXML,
+		}}, &spy)
+
+		server := httptest.NewServer(http.HandlerFunc(handler))
+		source := SWCSource{WebSocketURL: toWs(server.URL), PollIntervalMs: 1000}
+
+		_, err := source.Start()
+		if err != nil {
+			t.Errorf("Unexpected error %v", err)
+		}
+
+		server.Close()
+
+		if len(spy.messagesLog) < 1 {
+			t.Errorf("expected at least 1 message in WS got %d", len(spy.messagesLog))
+		}
+	})
+
+	t.Run("Measurements", func(t *testing.T) {
+		var spy = WsSpy{}
+		handler := generateHTTPHandler(t, []MessageResponse{{
+			message:  "LOGIN;000000",
+			response: loginXML,
+		}, {
+			message:  "GET;0x46bd50",
+			response: getXML,
+		}, {
+			message:  "REFRESH",
+			response: refreshXML,
+		}, {
+			message:  "REFRESH",
+			response: refreshXML,
+		}, {
+			message:  "REFRESH",
+			response: refreshXML,
+		}}, &spy)
+
+		server := httptest.NewServer(http.HandlerFunc(handler))
+		source := SWCSource{WebSocketURL: toWs(server.URL), PollIntervalMs: 3}
+
+		channel, _ := source.Start()
+
+		server.Close()
+
+		expectedValue, _ := json.Marshal(SWCMeasurement{
+			HeatingOutboundTemperature:     33.8,
+			HeatingInboundTemperature:      34.5,
+			OutsideTemperature:             4.7,
+			TankTemperature:                52.3,
+			TargetTankTemperature:          52.0,
+			DrillInboundTemperature:        11.0,
+			DrillOutboundTemperature:       11.2,
+			AmbiantIndoorTemperature:       21.1,
+			AmbiantIndoorTargetTemperature: 21.0,
+		})
+
+		for index := 0; index < 3; index++ {
+			measurement := <-channel
+
+			if string(expectedValue) != string(measurement.Value) {
+				t.Errorf("Expected value of %v got %v", string(expectedValue), string(measurement.Value))
+			}
+		}
+	})
 
 }

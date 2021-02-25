@@ -22,8 +22,8 @@ func TestPut(t *testing.T) {
 		mockStore := MockStore{}
 		measure := api.Measurement{
 			MeasurementType: api.WaterTemperature,
-			TimestampSecond: 123456789,
-			Measure:         42.0,
+			Timestamp:       123456789,
+			Value:           []byte("42"),
 		}
 
 		mockStore.Put(measure)

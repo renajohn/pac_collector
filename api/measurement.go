@@ -11,6 +11,6 @@ const (
 // Measurement holds a given measure at a specific time
 type Measurement struct {
 	MeasurementType MeasurementType
-	TimestampSecond int64
-	Measure         float64
+	Timestamp       int64
+	Value           []byte
 }

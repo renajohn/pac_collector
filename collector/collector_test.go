@@ -35,8 +35,8 @@ func TestStart(t *testing.T) {
 		mockStore := mockstore.MockStore{}
 		measurements := []api.Measurement{{
 			MeasurementType: api.WaterTemperature,
-			TimestampSecond: 1,
-			Measure:         44.0,
+			Timestamp:       1,
+			Value:           []byte("44"),
 		}}
 
 		sendMeasurements(source.measurementsChannel, measurements)
@@ -52,12 +52,12 @@ func TestStart(t *testing.T) {
 		mockStore := mockstore.MockStore{}
 		measurements := []api.Measurement{{
 			MeasurementType: api.WaterTemperature,
-			TimestampSecond: 1,
-			Measure:         44.0,
+			Timestamp:       1,
+			Value:           []byte("44"),
 		}, {
 			MeasurementType: api.WaterTemperature,
-			TimestampSecond: 2,
-			Measure:         10.0,
+			Timestamp:       2,
+			Value:           []byte("10"),
 		}}
 
 		sendMeasurements(source.measurementsChannel, measurements)
