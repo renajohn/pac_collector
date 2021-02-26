@@ -85,12 +85,12 @@ func TestStart(t *testing.T) {
 		}}, &spy)
 
 		server := httptest.NewServer(http.HandlerFunc(handler))
-		source := SWCSource{WebSocketURL: toWs(server.URL), PollIntervalMs: 1000}
-
-		_, err := source.Start()
+		source, err := NewSWCSource(toWs(server.URL), 1000)
 		if err != nil {
-			t.Errorf("Unexpected error %v", err)
+			t.Errorf("Failed to create new SWC source: %v", source)
 		}
+
+		source.Start()
 
 		server.Close()
 
@@ -119,11 +119,14 @@ func TestStart(t *testing.T) {
 		}}, &spy)
 
 		server := httptest.NewServer(http.HandlerFunc(handler))
-		source := SWCSource{WebSocketURL: toWs(server.URL), PollIntervalMs: 3}
+		defer server.Close()
 
-		channel, _ := source.Start()
+		source, err := NewSWCSource(toWs(server.URL), 3)
+		if err != nil {
+			t.Errorf("Failed to create new SWC source: %v", source)
+		}
 
-		server.Close()
+		go source.Start()
 
 		expectedValue, _ := json.Marshal(SWCMeasurement{
 			HeatingOutboundTemperature:     33.8,
@@ -138,11 +141,15 @@ func TestStart(t *testing.T) {
 		})
 
 		for index := 0; index < 3; index++ {
-			measurement := <-channel
+			measurement := <-source.MeasurementsChannel()
 
 			if string(expectedValue) != string(measurement.Value) {
 				t.Errorf("Expected value of %v got %v", string(expectedValue), string(measurement.Value))
 			}
+		}
+
+		if len(source.ErrorsChannel()) > 0 {
+			t.Errorf("Expected error in SWC source: %v", <-source.ErrorsChannel())
 		}
 	})
 

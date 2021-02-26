@@ -2,5 +2,8 @@ package api
 
 // Source represents a source
 type Source interface {
-	Start() (<-chan Measurement, error)
+	Start()
+
+	MeasurementsChannel() <-chan Measurement
+	ErrorsChannel() <-chan error
 }

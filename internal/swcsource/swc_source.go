@@ -18,21 +18,26 @@ type SWCSource struct {
 	WebSocketURL   string
 	PollIntervalMs time.Duration // defaults to 1 min
 
-	ws              *websocket.Conn
-	messagesChannel chan api.Measurement
+	ws                  *websocket.Conn
+	measurementsChannel chan api.Measurement
+	errorsChannel       chan error
 }
 
-// Start satisfies Source interface
-func (swc *SWCSource) Start() (<-chan api.Measurement, error) {
-	var err error
-
-	err = swc.validateConfig()
-	if err != nil {
-		return nil, err
+// NewSWCSource construct and validate an SWC source
+func NewSWCSource(URL string, pollingInterval time.Duration) (*SWCSource, error) {
+	source := SWCSource{
+		WebSocketURL:        URL,
+		measurementsChannel: make(chan api.Measurement),
+		errorsChannel:       make(chan error),
 	}
 
-	swc.messagesChannel = make(chan api.Measurement)
-	return swc.messagesChannel, swc.goStart()
+	if pollingInterval == 0 {
+		source.PollIntervalMs = time.Minute
+	}
+
+	err := source.validateConfig()
+
+	return &source, err
 }
 
 func (swc *SWCSource) validateConfig() error {
@@ -40,10 +45,30 @@ func (swc *SWCSource) validateConfig() error {
 		return errors.New("SWC Source URL must be a well formatted WebSocket URL")
 	}
 
-	if swc.PollIntervalMs == 0 {
-		swc.PollIntervalMs = time.Minute
-	}
 	return nil
+}
+
+// MeasurementsChannel satisfies Source interface
+func (swc *SWCSource) MeasurementsChannel() <-chan api.Measurement {
+	return swc.measurementsChannel
+}
+
+// ErrorsChannel satisfies Source interface
+func (swc *SWCSource) ErrorsChannel() <-chan error {
+	return swc.errorsChannel
+}
+
+// Start satisfies Source interface
+func (swc *SWCSource) Start() {
+	swc.measurementsChannel = make(chan api.Measurement)
+	swc.errorsChannel = make(chan error)
+
+	err := swc.validateConfig()
+	if err != nil {
+		swc.errorsChannel <- err
+	}
+
+	swc.goStart()
 }
 
 func (swc *SWCSource) goStart() error {
@@ -108,7 +133,7 @@ func (swc *SWCSource) parseMessage(byteXML []byte) {
 
 		if err == nil {
 			data, _ := json.Marshal(values)
-			swc.messagesChannel <- api.Measurement{
+			swc.measurementsChannel <- api.Measurement{
 				MeasurementType: api.WaterTemperature,
 				Timestamp:       time.Now().Unix(),
 				Value:           data}

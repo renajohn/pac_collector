@@ -10,10 +10,18 @@ import (
 
 type MockSource struct {
 	measurementsChannel chan api.Measurement
+	errorsChannel       chan error
 }
 
-func (ms *MockSource) Start() (<-chan api.Measurement, error) {
-	return ms.measurementsChannel, nil
+func (ms *MockSource) Start() {
+}
+
+func (ms *MockSource) MeasurementsChannel() <-chan api.Measurement {
+	return ms.measurementsChannel
+}
+
+func (ms *MockSource) ErrorsChannel() <-chan error {
+	return ms.errorsChannel
 }
 
 func sendMeasurements(channel chan api.Measurement, measurements []api.Measurement) {
@@ -31,7 +39,7 @@ func TestStart(t *testing.T) {
 	}
 
 	t.Run("Single value", func(t *testing.T) {
-		source := MockSource{make(chan api.Measurement, 1)}
+		source := MockSource{make(chan api.Measurement, 1), make(chan error, 1)}
 		mockSink := mocksink.MockSink{}
 		measurements := []api.Measurement{{
 			MeasurementType: api.WaterTemperature,
@@ -48,7 +56,7 @@ func TestStart(t *testing.T) {
 	})
 
 	t.Run("2 values value", func(t *testing.T) {
-		source := MockSource{make(chan api.Measurement, 2)}
+		source := MockSource{make(chan api.Measurement, 2), make(chan error, 1)}
 		mockSink := mocksink.MockSink{}
 		measurements := []api.Measurement{{
 			MeasurementType: api.WaterTemperature,
