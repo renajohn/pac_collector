@@ -27,8 +27,8 @@ type SWCSource struct {
 func NewSWCSource(URL string, pollingInterval time.Duration) (*SWCSource, error) {
 	source := SWCSource{
 		WebSocketURL:        URL,
-		measurementsChannel: make(chan api.Measurement),
-		errorsChannel:       make(chan error),
+		measurementsChannel: make(chan api.Measurement, 10),
+		errorsChannel:       make(chan error, 10),
 	}
 
 	if pollingInterval == 0 {
@@ -71,28 +71,29 @@ func (swc *SWCSource) Start() {
 	swc.goStart()
 }
 
-func (swc *SWCSource) goStart() error {
+func (swc *SWCSource) goStart() {
 	var err error
 
 	err = swc.connect()
 	if err != nil {
-		return err
+		swc.errorsChannel <- err
+		return
 	}
 
 	err = swc.login()
 	if err != nil {
-		return err
+		swc.errorsChannel <- err
+		return
 	}
 
 	err = swc.getTemperatures()
 	if err != nil {
-		return err
+		swc.errorsChannel <- err
+		return
 	}
 
 	go swc.readMessages()
 	go swc.poll()
-
-	return nil
 }
 
 func (swc *SWCSource) connect() error {
@@ -119,7 +120,8 @@ func (swc *SWCSource) readMessages() {
 		messageType, message, err := swc.ws.ReadMessage()
 		if err != nil {
 			// handle error
-			log.Printf("Error while reading WS message %v\n", err)
+			readError := fmt.Sprintf("Error while reading WS message %g, aborting", err)
+			log.Println(readError)
 			return
 		} else if messageType == websocket.TextMessage {
 			swc.parseMessage(message)
@@ -143,15 +145,17 @@ func (swc *SWCSource) parseMessage(byteXML []byte) {
 	}
 }
 
-func (swc *SWCSource) poll() error {
+func (swc *SWCSource) poll() {
 	var err error
 	for {
 		time.Sleep(swc.PollIntervalMs)
 
 		err = swc.ws.WriteMessage(websocket.TextMessage, []byte("REFRESH"))
 		if err != nil {
-			fmt.Printf("Error while polling for data %g, aborting", err)
-			return err
+			pollError := fmt.Sprintf("Error while polling for data %g, aborting", err)
+			log.Println(pollError)
+			swc.errorsChannel <- errors.New(pollError)
+			return
 		}
 	}
 }
