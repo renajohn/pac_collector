@@ -1,4 +1,4 @@
-package mockstore
+package mocksink
 
 import (
 	"reflect"
@@ -8,7 +8,7 @@ import (
 )
 
 func TestPut(t *testing.T) {
-	assertLastValue := func(store MockStore, expect api.Measurement) {
+	assertLastValue := func(store MockSink, expect api.Measurement) {
 		tail, err := store.LastMeasurement()
 
 		if err != nil {
@@ -19,16 +19,16 @@ func TestPut(t *testing.T) {
 	}
 
 	t.Run("Happy case", func(t *testing.T) {
-		mockStore := MockStore{}
+		mockSink := MockSink{}
 		measure := api.Measurement{
 			MeasurementType: api.WaterTemperature,
 			Timestamp:       123456789,
 			Value:           []byte("42"),
 		}
 
-		mockStore.Put(measure)
+		mockSink.Put(measure)
 
-		assertLastValue(mockStore, measure)
+		assertLastValue(mockSink, measure)
 	})
 
 }

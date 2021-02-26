@@ -99,7 +99,7 @@ func TestStart(t *testing.T) {
 		}
 	})
 
-	t.Run("Measurements", func(t *testing.T) {
+	t.Run("Source should be polling for new measurements", func(t *testing.T) {
 		var spy = WsSpy{}
 		handler := generateHTTPHandler(t, []MessageResponse{{
 			message:  "LOGIN;000000",
@@ -146,4 +146,8 @@ func TestStart(t *testing.T) {
 		}
 	})
 
+	// Test to write: Connection fails
+	t.Run("When connection drops, source should reconnect", func(t *testing.T) {
+
+	})
 }

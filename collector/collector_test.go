@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/renajohn/pac_collector/api"
-	"github.com/renajohn/pac_collector/internal/mockstore"
+	"github.com/renajohn/pac_collector/internal/mocksink"
 )
 
 type MockSource struct {
@@ -32,7 +32,7 @@ func TestStart(t *testing.T) {
 
 	t.Run("Single value", func(t *testing.T) {
 		source := MockSource{make(chan api.Measurement, 1)}
-		mockStore := mockstore.MockStore{}
+		mockSink := mocksink.MockSink{}
 		measurements := []api.Measurement{{
 			MeasurementType: api.WaterTemperature,
 			Timestamp:       1,
@@ -41,15 +41,15 @@ func TestStart(t *testing.T) {
 
 		sendMeasurements(source.measurementsChannel, measurements)
 
-		collector := Collector{Store: &mockStore, Source: &source}
+		collector := Collector{Sink: &mockSink, Source: &source}
 		collector.Start()
 
-		assertMeasurements(measurements, mockStore.Values)
+		assertMeasurements(measurements, mockSink.Values)
 	})
 
 	t.Run("2 values value", func(t *testing.T) {
 		source := MockSource{make(chan api.Measurement, 2)}
-		mockStore := mockstore.MockStore{}
+		mockSink := mocksink.MockSink{}
 		measurements := []api.Measurement{{
 			MeasurementType: api.WaterTemperature,
 			Timestamp:       1,
@@ -62,9 +62,9 @@ func TestStart(t *testing.T) {
 
 		sendMeasurements(source.measurementsChannel, measurements)
 
-		collector := Collector{Store: &mockStore, Source: &source}
+		collector := Collector{Sink: &mockSink, Source: &source}
 		collector.Start()
 
-		assertMeasurements(measurements, mockStore.Values)
+		assertMeasurements(measurements, mockSink.Values)
 	})
 }

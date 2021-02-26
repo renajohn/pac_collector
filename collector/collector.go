@@ -9,7 +9,7 @@ import (
 // Collector bind a source to a store
 type Collector struct {
 	Source        api.Source
-	Store         api.Store
+	Sink          api.Sink
 	sourceChannel <-chan api.Measurement
 }
 
@@ -27,6 +27,6 @@ func (c *Collector) Start() {
 
 func (c *Collector) collect() {
 	for measure := range c.sourceChannel {
-		c.Store.Put(measure)
+		c.Sink.Put(measure)
 	}
 }

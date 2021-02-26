@@ -1,4 +1,4 @@
-package mockstore
+package mocksink
 
 import (
 	"errors"
@@ -6,13 +6,13 @@ import (
 	"github.com/renajohn/pac_collector/api"
 )
 
-// MockStore implements a mock store for testing
-type MockStore struct {
+// MockSink implements a mock store for testing
+type MockSink struct {
 	Values []api.Measurement
 }
 
 //LastMeasurement returns the last recorded measurement or throws an error if no measurements where recorded
-func (ms *MockStore) LastMeasurement() (api.Measurement, error) {
+func (ms *MockSink) LastMeasurement() (api.Measurement, error) {
 	if len(ms.Values) == 0 {
 		return api.Measurement{}, errors.New("Values array is empty")
 	}
@@ -20,7 +20,7 @@ func (ms *MockStore) LastMeasurement() (api.Measurement, error) {
 }
 
 // Put a measurement in the sink
-func (ms *MockStore) Put(value api.Measurement) error {
+func (ms *MockSink) Put(value api.Measurement) error {
 	ms.Values = append(ms.Values, value)
 	return nil
 }

@@ -37,7 +37,7 @@ func (swc *SWCSource) Start() (<-chan api.Measurement, error) {
 
 func (swc *SWCSource) validateConfig() error {
 	if !strings.HasPrefix(swc.WebSocketURL, "ws:") {
-		return errors.New("SWC Source URL should be a well formatted WebSocket URL")
+		return errors.New("SWC Source URL must be a well formatted WebSocket URL")
 	}
 
 	if swc.PollIntervalMs == 0 {
