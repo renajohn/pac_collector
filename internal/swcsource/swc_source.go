@@ -60,18 +60,6 @@ func (swc *SWCSource) ErrorsChannel() <-chan error {
 
 // Start satisfies Source interface
 func (swc *SWCSource) Start() {
-	swc.measurementsChannel = make(chan api.Measurement)
-	swc.errorsChannel = make(chan error)
-
-	err := swc.validateConfig()
-	if err != nil {
-		swc.errorsChannel <- err
-	}
-
-	swc.goStart()
-}
-
-func (swc *SWCSource) goStart() {
 	var err error
 
 	err = swc.connect()
@@ -152,7 +140,7 @@ func (swc *SWCSource) poll() {
 
 		err = swc.ws.WriteMessage(websocket.TextMessage, []byte("REFRESH"))
 		if err != nil {
-			pollError := fmt.Sprintf("Error while polling for data %g, aborting", err)
+			pollError := fmt.Sprintf("Error while polling for data %v, aborting", err)
 			log.Println(pollError)
 			swc.errorsChannel <- errors.New(pollError)
 			return

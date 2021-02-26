@@ -7,8 +7,10 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/renajohn/pac_collector/api"
 )
 
 var upgrader = websocket.Upgrader{}
@@ -170,12 +172,19 @@ func TestStart(t *testing.T) {
 		go server.Start()
 		defer server.Close()
 
-		source, _ := NewSWCSource(toWs(server.URL), 3)
+		for len(server.URL) == 0 {
+			time.Sleep(10)
+		}
+
+		source, _ := NewSWCSource(toWs(server.URL), 1000)
 
 		go source.Start()
 
 		// wait for at least one measurement
-		<-source.MeasurementsChannel()
+		measurement := <-source.MeasurementsChannel()
+		if measurement.MeasurementType != api.WaterTemperature {
+			t.Errorf("Expected measurement type %s, but got %s", api.WaterTemperature, measurement.MeasurementType)
+		}
 
 		server.CloseClientConnections()
 
