@@ -1,17 +1,13 @@
 package swcsource
 
 import (
+	"errors"
 	"testing"
+	"time"
 )
 
 type MockSessionFactory struct {
 	nbCalled int
-}
-
-type MockSession struct {
-}
-
-func (ms *MockSession) StartSession() {
 }
 
 func (sf *MockSessionFactory) New(source *SWCSource) Session {
@@ -20,13 +16,43 @@ func (sf *MockSessionFactory) New(source *SWCSource) Session {
 	return &session
 }
 
+type MockSession struct {
+}
+
+func (ms *MockSession) StartSession() {
+}
+
 func TestStart(t *testing.T) {
-	factory := MockSessionFactory{}
-	source := swcSourceWithSessionFactory("ws:testurl", 1000, &factory)
 
-	source.Start()
+	t.Run("Happy case", func(t *testing.T) {
+		factory := MockSessionFactory{}
+		source := swcSourceWithSessionFactory("ws:testurl", 1000, &factory)
+		source.restartOnSessionFailure = false
 
-	if factory.nbCalled != 1 {
-		t.Errorf("Expected 1 session to be created, got %d", factory.nbCalled)
-	}
+		source.Start()
+
+		if factory.nbCalled != 1 {
+			t.Errorf("Expected 1 session to be created, got %d", factory.nbCalled)
+		}
+	})
+
+	t.Run("When session fails, a new one is created", func(t *testing.T) {
+		factory := MockSessionFactory{}
+		source := swcSourceWithSessionFactory("ws:testurl", 1000, &factory)
+
+		go source.Start()
+
+		// make sure the Start has been executed
+		time.Sleep(10 * time.Microsecond)
+
+		source.sessionErrorsChannel <- errors.New("Boom")
+
+		// make sure the Start has been executed
+		time.Sleep(10 * time.Microsecond)
+
+		if factory.nbCalled != 2 {
+			t.Errorf("Expected 2 session to be created, got %d", factory.nbCalled)
+		}
+	})
+
 }

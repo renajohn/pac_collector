@@ -133,4 +133,28 @@ func TestStartSession(t *testing.T) {
 		// test will fail if no errors is returned due to the test timeout
 		<-session.ErrorsChannel
 	})
+
+	t.Run("When URL is not valid, an error should be generated", func(t *testing.T) {
+		measurementsChannel := make(chan api.Measurement)
+		errorsChannel := make(chan error)
+		_, err := NewSWCSession("http://when-it-should-be-ws", 1000, measurementsChannel, errorsChannel)
+
+		if err == nil {
+			t.Error("An error was expected and none was returned")
+		}
+	})
+
+	t.Run("When no polling interval is provided, use 1min", func(t *testing.T) {
+		measurementsChannel := make(chan api.Measurement)
+		errorsChannel := make(chan error)
+		session, err := NewSWCSession("ws://when-it-should-be-ws", 0, measurementsChannel, errorsChannel)
+
+		if err != nil {
+			t.Errorf("No error was expected but got %v", err)
+		}
+
+		if session.PollIntervalMs != time.Millisecond*1000*60 {
+			t.Errorf("Expected polling intervals of %dms and got %dms", time.Millisecond*1000*60, session.PollIntervalMs)
+		}
+	})
 }

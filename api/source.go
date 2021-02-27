@@ -5,5 +5,4 @@ type Source interface {
 	Start()
 
 	MeasurementsChannel() <-chan Measurement
-	ErrorsChannel() <-chan error
 }

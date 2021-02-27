@@ -2,6 +2,7 @@ package mocksink
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/renajohn/pac_collector/api"
 )
@@ -22,5 +23,6 @@ func (ms *MockSink) LastMeasurement() (api.Measurement, error) {
 // Put a measurement in the sink
 func (ms *MockSink) Put(value api.Measurement) error {
 	ms.Values = append(ms.Values, value)
+	fmt.Println(fmt.Sprintf("%v", value))
 	return nil
 }
