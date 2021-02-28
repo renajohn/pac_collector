@@ -23,6 +23,6 @@ func (ms *MockSink) LastMeasurement() (api.Measurement, error) {
 // Put a measurement in the sink
 func (ms *MockSink) Put(value api.Measurement) error {
 	ms.Values = append(ms.Values, value)
-	fmt.Println(fmt.Sprintf("%v", value))
+	fmt.Println(fmt.Sprintf("[%v] - %s: %v", value.Timestamp, value.MeasurementType, string(value.Value)))
 	return nil
 }

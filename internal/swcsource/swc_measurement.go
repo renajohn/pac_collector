@@ -7,15 +7,16 @@ import (
 	"strings"
 )
 
-const heatingOutboundTemperature = "0x46a0ac"
-const heatingInboundTemperature = "0x49902c"
-const outsideTemperature = "0x498414"
-const tankTemperature = "0x4976e4"
-const targetTankTemperature = "0x497b4c"
-const drillInboundTemperature = "0x497ef4"
-const drillOutboundTemperature = "0x497494"
-const ambiantIndoorTemperature = "0x4678d4"
-const ambiantIndoorTargetTemperature = "0x46790c"
+// TODO: using index is horrible, use ID
+const heatingOutboundTemperature = 0
+const heatingInboundTemperature = 1
+const outsideTemperature = 4
+const tankTemperature = 6
+const targetTankTemperature = 7
+const drillInboundTemperature = 8
+const drillOutboundTemperature = 9
+const ambiantIndoorTemperature = 20
+const ambiantIndoorTargetTemperature = 21
 
 // SWCMeasurement represents all monitored temperatures out of the SWC heating system
 type SWCMeasurement struct {
@@ -56,15 +57,15 @@ func parseXMLMeasurement(byteXML []byte) (SWCMeasurement, error) {
 	}
 
 	swcMeasurement := SWCMeasurement{
-		HeatingOutboundTemperature:     convertToFloat64(valuesMap[heatingOutboundTemperature]),
-		HeatingInboundTemperature:      convertToFloat64(valuesMap[heatingInboundTemperature]),
-		OutsideTemperature:             convertToFloat64(valuesMap[outsideTemperature]),
-		TankTemperature:                convertToFloat64(valuesMap[tankTemperature]),
-		TargetTankTemperature:          convertToFloat64(valuesMap[targetTankTemperature]),
-		DrillInboundTemperature:        convertToFloat64(valuesMap[drillInboundTemperature]),
-		DrillOutboundTemperature:       convertToFloat64(valuesMap[drillOutboundTemperature]),
-		AmbiantIndoorTemperature:       convertToFloat64(valuesMap[ambiantIndoorTemperature]),
-		AmbiantIndoorTargetTemperature: convertToFloat64(valuesMap[ambiantIndoorTargetTemperature]),
+		HeatingOutboundTemperature:     convertToFloat64(values.Items[heatingOutboundTemperature].Value),
+		HeatingInboundTemperature:      convertToFloat64(values.Items[heatingInboundTemperature].Value),
+		OutsideTemperature:             convertToFloat64(values.Items[outsideTemperature].Value),
+		TankTemperature:                convertToFloat64(values.Items[tankTemperature].Value),
+		TargetTankTemperature:          convertToFloat64(values.Items[targetTankTemperature].Value),
+		DrillInboundTemperature:        convertToFloat64(values.Items[drillInboundTemperature].Value),
+		DrillOutboundTemperature:       convertToFloat64(values.Items[drillOutboundTemperature].Value),
+		AmbiantIndoorTemperature:       convertToFloat64(values.Items[ambiantIndoorTemperature].Value),
+		AmbiantIndoorTargetTemperature: convertToFloat64(values.Items[ambiantIndoorTargetTemperature].Value),
 	}
 
 	return swcMeasurement, nil

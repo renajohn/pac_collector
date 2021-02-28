@@ -29,7 +29,7 @@ type _SWCSessionFactoryImpl struct {
 }
 
 func (factory _SWCSessionFactoryImpl) New(source *SWCSource) Session {
-	session, err := NewSWCSession(source.WebSocketURL, source.PollIntervalMs, source.measurementsChannel, source.sessionErrorsChannel)
+	session, err := newSWCSession(source.WebSocketURL, source.PollIntervalMs, source.measurementsChannel, source.sessionErrorsChannel)
 
 	if err != nil {
 		panic("Failed to create SWC session")
@@ -43,7 +43,14 @@ func (swc *SWCSource) MeasurementsChannel() <-chan api.Measurement {
 	return swc.measurementsChannel
 }
 
-func swcSourceWithSessionFactory(URL string, pollingInterval time.Duration, factory SWCSessionFactory) *SWCSource {
+// NewSWCSource creates a new SWCSource
+func NewSWCSource(URL string, pollingInterval time.Duration) *SWCSource {
+	factory := _SWCSessionFactoryImpl{}
+
+	return newSWCSourceWithSessionFactory(URL, pollingInterval, &factory)
+}
+
+func newSWCSourceWithSessionFactory(URL string, pollingInterval time.Duration, factory SWCSessionFactory) *SWCSource {
 	source := SWCSource{
 		WebSocketURL:         URL,
 		measurementsChannel:  make(chan api.Measurement, 10),
@@ -51,6 +58,7 @@ func swcSourceWithSessionFactory(URL string, pollingInterval time.Duration, fact
 
 		sessionFactory:          factory,
 		restartOnSessionFailure: true,
+		PollIntervalMs:          pollingInterval,
 	}
 
 	return &source
@@ -72,7 +80,7 @@ func (swc *SWCSource) Start() {
 func (swc *SWCSource) monitorSessionError() {
 	err := <-swc.sessionErrorsChannel
 	if err != nil {
-		fmt.Println(fmt.Sprintf("Session was terminited due to an error, restarting"))
+		fmt.Println(fmt.Sprintf("Session was terminited due to an error, restarting: %v", err))
 		swc.Start()
 	}
 }

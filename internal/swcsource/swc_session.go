@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -21,7 +22,8 @@ type SWCSession struct {
 	MeasurementsChannel chan api.Measurement
 	ErrorsChannel       chan error
 
-	ws *websocket.Conn
+	ws             *websocket.Conn
+	temperatureCmd string
 }
 
 // Session represent a Web Socket session. If the connection is broken, the session is destroyed
@@ -29,8 +31,8 @@ type Session interface {
 	StartSession()
 }
 
-// NewSWCSession construct and validate an SWC Session
-func NewSWCSession(URL string, pollingInterval time.Duration, measurementsChannel chan api.Measurement, errorsChannel chan error) (*SWCSession, error) {
+// newSWCSession construct and validate an SWC Session
+func newSWCSession(URL string, pollingInterval time.Duration, measurementsChannel chan api.Measurement, errorsChannel chan error) (*SWCSession, error) {
 	session := SWCSession{
 		WebSocketURL:        URL,
 		MeasurementsChannel: measurementsChannel,
@@ -39,6 +41,8 @@ func NewSWCSession(URL string, pollingInterval time.Duration, measurementsChanne
 
 	if pollingInterval == 0 {
 		session.PollIntervalMs = time.Minute
+	} else {
+		session.PollIntervalMs = pollingInterval
 	}
 
 	err := session.validateConfig()
@@ -60,19 +64,19 @@ func (swc *SWCSession) StartSession() {
 
 	err = swc.connect()
 	if err != nil {
-		swc.ErrorsChannel <- err
+		swc.terminate(err)
 		return
 	}
 
 	err = swc.login()
 	if err != nil {
-		swc.ErrorsChannel <- err
+		swc.terminate(err)
 		return
 	}
 
 	err = swc.getTemperatures()
 	if err != nil {
-		swc.ErrorsChannel <- err
+		swc.terminate(err)
 		return
 	}
 
@@ -81,7 +85,10 @@ func (swc *SWCSession) StartSession() {
 }
 
 func (swc *SWCSession) connect() error {
-	ws, _, err := websocket.DefaultDialer.Dial(swc.WebSocketURL, nil)
+	header := map[string][]string{
+		"Sec-WebSocket-Protocol": {"Lux_WS"},
+	}
+	ws, _, err := websocket.DefaultDialer.Dial(swc.WebSocketURL, header)
 	if err != nil {
 		return err
 	}
@@ -91,21 +98,41 @@ func (swc *SWCSession) connect() error {
 }
 
 func (swc *SWCSession) login() error {
-	return swc.ws.WriteMessage(websocket.TextMessage, []byte("LOGIN;000000"))
+	err := swc.ws.WriteMessage(websocket.TextMessage, []byte("LOGIN;000000"))
+	if err != nil {
+		return err
+	}
+	_, message, err := swc.ws.ReadMessage()
+	if err != nil {
+		return err
+	}
+
+	r, _ := regexp.Compile("(?s)<Navigation id='.*?'>.*?<item id='.*?'>.*?<name>.*?</name>.*?<item id='(.*?)'>")
+	submatch := r.FindStringSubmatch(string(message))
+
+	if len(submatch) == 2 {
+		temperatureID := submatch[1]
+		swc.temperatureCmd = "GET;" + temperatureID
+	} else {
+		return errors.New("login XML message is inconsistent - aborting")
+	}
+
+	return nil
 }
 
 func (swc *SWCSession) getTemperatures() error {
-	return swc.ws.WriteMessage(websocket.TextMessage, []byte("GET;0x46bd50"))
+	return swc.ws.WriteMessage(websocket.TextMessage, []byte(swc.temperatureCmd))
 }
 
 func (swc *SWCSession) readMessages() {
 	for {
 		// receive message
 		messageType, message, err := swc.ws.ReadMessage()
+
 		if err != nil {
-			// handle error
-			readError := fmt.Sprintf("Error while reading WS message %g, aborting", err)
+			readError := fmt.Sprintf("Error while reading WS message: %v - aborting", err)
 			log.Println(readError)
+			swc.terminate(err)
 			return
 		} else if messageType == websocket.TextMessage {
 			swc.parseMessage(message)
@@ -133,13 +160,19 @@ func (swc *SWCSession) poll() {
 	var err error
 	for {
 		time.Sleep(swc.PollIntervalMs)
-
 		err = swc.ws.WriteMessage(websocket.TextMessage, []byte("REFRESH"))
 		if err != nil {
 			pollError := fmt.Sprintf("Error while polling for data %v, aborting", err)
 			log.Println(pollError)
-			swc.ErrorsChannel <- errors.New(pollError)
+			swc.terminate(errors.New(pollError))
 			return
 		}
+	}
+}
+
+func (swc *SWCSession) terminate(err error) {
+	if swc.ws != nil {
+		swc.ws.Close()
+		swc.ErrorsChannel <- err
 	}
 }

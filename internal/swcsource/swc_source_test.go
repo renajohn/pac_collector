@@ -26,7 +26,7 @@ func TestStart(t *testing.T) {
 
 	t.Run("Happy case", func(t *testing.T) {
 		factory := MockSessionFactory{}
-		source := swcSourceWithSessionFactory("ws:testurl", 1000, &factory)
+		source := newSWCSourceWithSessionFactory("ws:testurl", 1000, &factory)
 		source.restartOnSessionFailure = false
 
 		source.Start()
@@ -38,17 +38,17 @@ func TestStart(t *testing.T) {
 
 	t.Run("When session fails, a new one is created", func(t *testing.T) {
 		factory := MockSessionFactory{}
-		source := swcSourceWithSessionFactory("ws:testurl", 1000, &factory)
+		source := newSWCSourceWithSessionFactory("ws:testurl", 1000, &factory)
 
 		go source.Start()
 
 		// make sure the Start has been executed
-		time.Sleep(10 * time.Microsecond)
+		time.Sleep(100 * time.Microsecond)
 
 		source.sessionErrorsChannel <- errors.New("Boom")
 
 		// make sure the Start has been executed
-		time.Sleep(10 * time.Microsecond)
+		time.Sleep(100 * time.Microsecond)
 
 		if factory.nbCalled != 2 {
 			t.Errorf("Expected 2 session to be created, got %d", factory.nbCalled)

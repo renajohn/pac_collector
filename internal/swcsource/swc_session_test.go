@@ -11,62 +11,44 @@ import (
 )
 
 func TestStartSession(t *testing.T) {
-	loginXML := readFixture(t, "testdata/LOGIN;123456.xml")
-	getXML := readFixture(t, "testdata/GET;0x46bd50.xml")
-	refreshXML := readFixture(t, "testdata/GET;0x46bd50-REFRESH.xml")
 
 	t.Run("WebSocket connection", func(t *testing.T) {
-		t.Skip()
-		var spy = wsSpy{}
-		handler := generateHTTPHandler(t, []messageResponse{{
-			message:  "LOGIN;000000",
-			response: loginXML,
-		}}, &spy)
+		spy := makeSpy()
+		handler := generateHTTPHandler(t, spy)
 
 		server := httptest.NewServer(http.HandlerFunc(handler))
 
 		measurementsChannel := make(chan api.Measurement)
 		errorsChannel := make(chan error)
-		session, err := NewSWCSession(toWs(server.URL), 1000, measurementsChannel, errorsChannel)
+		session, err := newSWCSession(toWs(server.URL), 1000, measurementsChannel, errorsChannel)
 		if err != nil {
 			t.Errorf("Failed to create new SWC session: %v", session)
 		}
 
-		session.StartSession()
+		go session.StartSession()
+
+		// wait for first message
+		<-spy.messageChannel
 
 		server.Close()
 
 		if len(spy.messagesLog) < 1 {
 			t.Errorf("expected at least 1 message in WS got %d", len(spy.messagesLog))
 		}
+
+		spy.stop = true
 	})
 
 	t.Run("session should be polling for new measurements", func(t *testing.T) {
-		t.Skip()
-		var spy = wsSpy{}
-		handler := generateHTTPHandler(t, []messageResponse{{
-			message:  "LOGIN;000000",
-			response: loginXML,
-		}, {
-			message:  "GET;0x46bd50",
-			response: getXML,
-		}, {
-			message:  "REFRESH",
-			response: refreshXML,
-		}, {
-			message:  "REFRESH",
-			response: refreshXML,
-		}, {
-			message:  "REFRESH",
-			response: refreshXML,
-		}}, &spy)
+		spy := makeSpy()
+		handler := generateHTTPHandler(t, spy)
 
 		server := httptest.NewServer(http.HandlerFunc(handler))
 		defer server.Close()
 
 		measurementsChannel := make(chan api.Measurement)
 		errorsChannel := make(chan error)
-		session, _ := NewSWCSession(toWs(server.URL), 3, measurementsChannel, errorsChannel)
+		session, _ := newSWCSession(toWs(server.URL), 3, measurementsChannel, errorsChannel)
 
 		go session.StartSession()
 
@@ -93,22 +75,15 @@ func TestStartSession(t *testing.T) {
 		if len(session.ErrorsChannel) > 0 {
 			t.Errorf("Expected error in SWC session: %v", <-session.ErrorsChannel)
 		}
+
+		spy.stop = true
 	})
 
-	t.Run("When connection drops, session should reconnect", func(t *testing.T) {
-		var spy = wsSpy{}
-		handler := generateHTTPHandler(t, []messageResponse{{
-			message:  "LOGIN;000000",
-			response: loginXML,
-		}, {
-			message:  "GET;0x46bd50",
-			response: getXML,
-		}, {
-			message:  "REFRESH",
-			response: refreshXML,
-		}}, &spy)
-
+	t.Run("When connection drops, session propagate an error", func(t *testing.T) {
+		spy := makeSpy()
+		handler := generateHTTPHandler(t, spy)
 		server := httptest.NewUnstartedServer(http.HandlerFunc(handler))
+
 		go server.Start()
 		defer server.Close()
 
@@ -116,9 +91,12 @@ func TestStartSession(t *testing.T) {
 			time.Sleep(10)
 		}
 
-		measurementsChannel := make(chan api.Measurement)
-		errorsChannel := make(chan error)
-		session, _ := NewSWCSession(toWs(server.URL), 1000, measurementsChannel, errorsChannel)
+		measurementsChannel := make(chan api.Measurement, 10)
+		errorsChannel := make(chan error, 10)
+		session, err := newSWCSession(toWs(server.URL), 1000, measurementsChannel, errorsChannel)
+		if err != nil {
+			t.Errorf("error should be nil: %v", err)
+		}
 
 		go session.StartSession()
 
@@ -128,7 +106,8 @@ func TestStartSession(t *testing.T) {
 			t.Errorf("Expected measurement type %s, but got %s", api.WaterTemperature, measurement.MeasurementType)
 		}
 
-		server.CloseClientConnections()
+		// stop handler
+		spy.stop = true
 
 		// test will fail if no errors is returned due to the test timeout
 		<-session.ErrorsChannel
@@ -137,7 +116,7 @@ func TestStartSession(t *testing.T) {
 	t.Run("When URL is not valid, an error should be generated", func(t *testing.T) {
 		measurementsChannel := make(chan api.Measurement)
 		errorsChannel := make(chan error)
-		_, err := NewSWCSession("http://when-it-should-be-ws", 1000, measurementsChannel, errorsChannel)
+		_, err := newSWCSession("http://when-it-should-be-ws", 1000, measurementsChannel, errorsChannel)
 
 		if err == nil {
 			t.Error("An error was expected and none was returned")
@@ -147,7 +126,7 @@ func TestStartSession(t *testing.T) {
 	t.Run("When no polling interval is provided, use 1min", func(t *testing.T) {
 		measurementsChannel := make(chan api.Measurement)
 		errorsChannel := make(chan error)
-		session, err := NewSWCSession("ws://when-it-should-be-ws", 0, measurementsChannel, errorsChannel)
+		session, err := newSWCSession("ws://when-it-should-be-ws", 0, measurementsChannel, errorsChannel)
 
 		if err != nil {
 			t.Errorf("No error was expected but got %v", err)

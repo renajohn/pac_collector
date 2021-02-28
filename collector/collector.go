@@ -12,7 +12,7 @@ type Collector struct {
 
 // Start initiate the collection process
 func (c *Collector) Start() {
-	c.Source.Start()
+	go c.Source.Start()
 	c.collect()
 }
 
