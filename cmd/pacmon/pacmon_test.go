@@ -17,12 +17,24 @@ func TestParseCmdParams(t *testing.T) {
 	expectedTable := []argsItem{
 		{
 			name:       "Happy case",
+			args:       []string{"pacmon", "-sourceURL=ws://test", "-pollingInterval=123", "-sinkURL=http://test", "-topic=foobar"},
+			shouldFail: false,
+			expected: pacMonConfig{
+				sourceURL:       "ws://test",
+				pollingInterval: time.Duration(123) * time.Second,
+				sinkURL:         "http://test",
+				kafkaTopic:      "foobar",
+			},
+		},
+		{
+			name:       "Topic is optional",
 			args:       []string{"pacmon", "-sourceURL=ws://test", "-pollingInterval=123", "-sinkURL=http://test"},
 			shouldFail: false,
 			expected: pacMonConfig{
 				sourceURL:       "ws://test",
 				pollingInterval: time.Duration(123) * time.Second,
 				sinkURL:         "http://test",
+				kafkaTopic:      "SWCTemperature",
 			},
 		},
 		{
@@ -63,6 +75,7 @@ func TestParseCmdParams(t *testing.T) {
 				sourceURL:       "ws://test",
 				pollingInterval: time.Duration(60) * time.Second,
 				sinkURL:         "http://test",
+				kafkaTopic:      "SWCTemperature",
 			},
 		},
 	}

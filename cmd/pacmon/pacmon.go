@@ -7,13 +7,14 @@ import (
 	"time"
 
 	"github.com/renajohn/pac_collector/collector"
-	"github.com/renajohn/pac_collector/internal/mocksink"
+	"github.com/renajohn/pac_collector/internal/kafkasink"
 	"github.com/renajohn/pac_collector/internal/swcsource"
 )
 
 type pacMonConfig struct {
 	sourceURL       string
 	sinkURL         string
+	kafkaTopic      string
 	pollingInterval time.Duration
 }
 
@@ -21,7 +22,8 @@ func parseCmdParams(args []string) (*pacMonConfig, error) {
 
 	var commandLine = flag.NewFlagSet(args[0], flag.ExitOnError)
 	sourceURLPtr := commandLine.String("sourceURL", "", "Source end point URL")
-	sinkURLPtr := commandLine.String("sinkURL", "", "Sink end point URL")
+	sinkURLPtr := commandLine.String("sinkURL", "", "Sink end point URL. This URL should point to a kafka broker.")
+	topicPtr := commandLine.String("topic", "SWCTemperature", "[Optional] Which kafka topic to use")
 	intervalPtr := commandLine.Int("pollingInterval", 60, "[Optional] Interval in seconds at which data will be fetched (min 1s)")
 
 	commandLine.Parse(args[1:])
@@ -35,6 +37,7 @@ func parseCmdParams(args []string) (*pacMonConfig, error) {
 		sourceURL:       *sourceURLPtr,
 		sinkURL:         *sinkURLPtr,
 		pollingInterval: time.Duration(*intervalPtr) * time.Second,
+		kafkaTopic:      *topicPtr,
 	}
 
 	return &config, nil
@@ -47,13 +50,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	sink := mocksink.MockSink{}
-	//source := swcsource.NewSWCSource("ws://192.168.086.29:8214/", 2*time.Second)
+	sink := kafkasink.NewKafkaSink(config.sinkURL, config.kafkaTopic)
 	source := swcsource.NewSWCSource(config.sourceURL, config.pollingInterval)
 
 	collector := collector.Collector{
 		Source: source,
-		Sink:   &sink,
+		Sink:   sink,
 	}
 
 	collector.Start()
