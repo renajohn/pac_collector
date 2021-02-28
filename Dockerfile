@@ -16,6 +16,7 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/pacmon ./cmd/pacmon/pacmon.go
 
 FROM scratch
+ENV sinkURL localhost:29092
 
 COPY --from=builder /app/bin/pacmon /app/pacmon
 
