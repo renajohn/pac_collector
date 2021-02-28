@@ -51,11 +51,6 @@ func parseXMLMeasurement(byteXML []byte) (SWCMeasurement, error) {
 		return SWCMeasurement{}, err
 	}
 
-	valuesMap := make(map[string]string)
-	for _, item := range values.Items {
-		valuesMap[item.Ref] = item.Value
-	}
-
 	swcMeasurement := SWCMeasurement{
 		HeatingOutboundTemperature:     convertToFloat64(values.Items[heatingOutboundTemperature].Value),
 		HeatingInboundTemperature:      convertToFloat64(values.Items[heatingInboundTemperature].Value),
