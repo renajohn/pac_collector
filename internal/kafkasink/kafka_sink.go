@@ -3,6 +3,7 @@ package kafkasink
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/renajohn/pac_collector/api"
 	"github.com/segmentio/kafka-go"
@@ -55,6 +56,8 @@ type KafkaSink struct {
 func (ks *KafkaSink) Put(measurement api.Measurement) error {
 	writer := ks.factory.NewWriter()
 	defer writer.Close()
+
+	log.Println(fmt.Sprintf("Sending message to Kafka - [%s]: %v", measurement.MeasurementType, string(measurement.Value)))
 
 	message := kafka.Message{
 		Key:   []byte(measurement.MeasurementType),

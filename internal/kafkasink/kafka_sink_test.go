@@ -50,7 +50,7 @@ func TestPut(t *testing.T) {
 		factory := mockWriterFactoryImpl{}
 		sink := newKafkaSinkWithConnectionFactory(&factory)
 		measure := api.Measurement{
-			MeasurementType: api.WaterTemperature,
+			MeasurementType: api.SWCTemperature,
 			Timestamp:       123456789,
 			Value:           []byte("42"),
 		}
@@ -71,7 +71,7 @@ func TestPut(t *testing.T) {
 		}
 		sink := newKafkaSinkWithConnectionFactory(&factory)
 		measure := api.Measurement{
-			MeasurementType: api.WaterTemperature,
+			MeasurementType: api.SWCTemperature,
 			Timestamp:       123456789,
 			Value:           []byte("42"),
 		}

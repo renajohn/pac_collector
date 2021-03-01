@@ -147,7 +147,7 @@ func (swc *SWCSession) parseMessage(byteXML []byte) {
 		if err == nil {
 			data, _ := json.Marshal(values)
 			swc.MeasurementsChannel <- api.Measurement{
-				MeasurementType: api.WaterTemperature,
+				MeasurementType: api.SWCTemperature,
 				Timestamp:       time.Now().Unix(),
 				Value:           data}
 		} else {

@@ -102,8 +102,8 @@ func TestStartSession(t *testing.T) {
 
 		// wait for at least one measurement
 		measurement := <-session.MeasurementsChannel
-		if measurement.MeasurementType != api.WaterTemperature {
-			t.Errorf("Expected measurement type %s, but got %s", api.WaterTemperature, measurement.MeasurementType)
+		if measurement.MeasurementType != api.SWCTemperature {
+			t.Errorf("Expected measurement type %s, but got %s", api.SWCTemperature, measurement.MeasurementType)
 		}
 
 		// stop handler

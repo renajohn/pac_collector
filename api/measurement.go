@@ -4,8 +4,8 @@ package api
 type MeasurementType string
 
 const (
-	// WaterTemperature represents the current water temperature of the tank as reported by the system
-	WaterTemperature MeasurementType = "waterTemperature"
+	// SWCTemperature represents the current temperatures returned by the SWC PAC system
+	SWCTemperature MeasurementType = "SWCTemperature"
 )
 
 // Measurement holds a given measure at a specific time

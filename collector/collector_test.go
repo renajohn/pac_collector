@@ -42,7 +42,7 @@ func TestStart(t *testing.T) {
 		source := MockSource{make(chan api.Measurement, 1), make(chan error, 1)}
 		mockSink := mocksink.MockSink{}
 		measurements := []api.Measurement{{
-			MeasurementType: api.WaterTemperature,
+			MeasurementType: api.SWCTemperature,
 			Timestamp:       1,
 			Value:           []byte("44"),
 		}}
@@ -59,11 +59,11 @@ func TestStart(t *testing.T) {
 		source := MockSource{make(chan api.Measurement, 2), make(chan error, 1)}
 		mockSink := mocksink.MockSink{}
 		measurements := []api.Measurement{{
-			MeasurementType: api.WaterTemperature,
+			MeasurementType: api.SWCTemperature,
 			Timestamp:       1,
 			Value:           []byte("44"),
 		}, {
-			MeasurementType: api.WaterTemperature,
+			MeasurementType: api.SWCTemperature,
 			Timestamp:       2,
 			Value:           []byte("10"),
 		}}

@@ -21,7 +21,7 @@ func TestPut(t *testing.T) {
 	t.Run("Happy case", func(t *testing.T) {
 		mockSink := MockSink{}
 		measure := api.Measurement{
-			MeasurementType: api.WaterTemperature,
+			MeasurementType: api.SWCTemperature,
 			Timestamp:       123456789,
 			Value:           []byte("42"),
 		}
