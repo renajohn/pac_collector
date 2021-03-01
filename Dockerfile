@@ -1,5 +1,10 @@
 FROM golang:alpine AS builder
 
+ENV SOURCE_URL=""
+ENV SINK_URL=""
+ENV TOPIC=""
+ENV POLLING_INTERVAL=""
+
 # Install git.
 # Git is required for fetching the dependencies.
 RUN apk update && apk add --no-cache git
@@ -15,9 +20,8 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o ./bin/pacmon ./cmd/pacmon/pacmon.go
 
-FROM scratch
-ENV sinkURL localhost:29092
+FROM alpine:latest
 
 COPY --from=builder /app/bin/pacmon /app/pacmon
 
-CMD ["/app/pacmon", "--sinkURL=192.168.86.41:9092", "-topic=SWCTemperature", "-sourceURL=ws://192.168.086.29:8214/"]
+ENTRYPOINT /app/pacmon --sinkURL=${SINK_URL:-localhost:29092} -topic=${TOPIC:-SWCTemperature} -pollingInterval=${POLLING_INTERVAL:-60} -sourceURL=${SOURCE_URL:-ws://192.168.086.29:8214/}
