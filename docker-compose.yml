@@ -1,0 +1,14 @@
+---
+version: '2'
+services:
+    pacmon:
+    image: renajohn/pacmon:latest
+    container_name: pacmon
+    restart: on-failure
+    depends_on:
+      - broker
+    environment:
+      SOURCE_URL: "ws://192.168.086.29:8214/"
+      SINK_URL: "broker:29092"
+      TOPIC: "SWCTemperature"
+      POLLING_INTERVAL: "60"
