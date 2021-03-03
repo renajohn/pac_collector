@@ -14,3 +14,6 @@ bin
 
 # OS specific
 .DS_Store
+
+# ignore VSCode
+.vscode
